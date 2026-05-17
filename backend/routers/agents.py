@@ -174,6 +174,14 @@ def get_runs(agent_id: str, db: Session = Depends(get_session)):
     return db.exec(select(AgentRun).where(AgentRun.agent_id == agent_id).order_by(AgentRun.started_at.desc())).all()
 
 
+@router.get("/runs/{run_id}")
+def get_run(run_id: str, db: Session = Depends(get_session)):
+    run = db.get(AgentRun, run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail="Run not found")
+    return run
+
+
 @router.post("/demo/medical-billing")
 async def create_demo_agent(db: Session = Depends(get_session)):
     """Create a demo medical billing anomaly detector agent with workflow."""
