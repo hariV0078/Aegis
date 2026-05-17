@@ -121,3 +121,23 @@ export async function generateAgentConfig(payload: { description: string; llm_pr
 export async function getAuditLog(limit = 50): Promise<Array<Record<string, unknown>>> {
   return request(`/audit?limit=${limit}`);
 }
+
+export async function transcribeAudioFile(file: File, apiKey?: string, provider?: string): Promise<{ text: string }> {
+  const formData = new FormData();
+  formData.append("file", file);
+  if (apiKey) formData.append("api_key", apiKey);
+  if (provider) formData.append("provider", provider);
+
+  const response = await fetch(`${API_BASE_URL}/agents/transcribe`, {
+    method: "POST",
+    body: formData,
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`HTTP ${response.status}: ${errorText}`);
+  }
+
+  return response.json();
+}
