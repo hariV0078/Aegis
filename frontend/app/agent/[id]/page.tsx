@@ -85,9 +85,8 @@ export default function AgentDetailPage() {
         setUploadedFileName(file.name);
         
         if (isBinary) {
-          // If it is binary (like audio), output a gorgeous simulated transcript
           setInputData(
-            `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`
+            `[VERBATIM AUDIO TRANSCRIPTION SOURCE: ${file.name}]\n\nDoctor: [Simulated Clinical Audio Transcript Details]\nPatient: [Simulated Patient Dialogue Details]\n`
           );
         } else {
           // If it is a text-based file (of ANY extension!), load 100% of it verbatim!
@@ -195,7 +194,7 @@ export default function AgentDetailPage() {
           descLower.includes("scribe")
         ) {
           setInputData(
-            `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`
+            `Doctor: [Enter Doctor Dialogue]\nPatient: [Enter Patient Dialogue]\n`
           );
         }
         
@@ -284,20 +283,19 @@ export default function AgentDetailPage() {
       
       setResult(response.output);
       
-      const nextRuns = await getRuns(agentId);
-      const nextAgent = await getAgent(agentId);
-      setRuns(nextRuns);
-      setAgent(nextAgent);
-      
       setTerminalLogs(prev => [
         ...prev,
         {
           id: Date.now().toString() + "_complete",
           timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-          text: `> OUTPUT GENERATED:\n${response.output}`,
+          text: `> ROUTING TO SECURE TELEMETRY FLOW...`,
           type: "thought"
         }
       ]);
+
+      setTimeout(() => {
+        router.push(`/agent/${agentId}/run/${response.run_id}`);
+      }, 800);
       
     } catch (cause) {
       const errMsg = cause instanceof Error ? cause.message : "Failed to run the agent.";
