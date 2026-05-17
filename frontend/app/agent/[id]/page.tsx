@@ -82,7 +82,7 @@ export default function AgentDetailPage() {
       } catch (error) {
         console.error("Transcription error:", error);
         
-        // Fallback to high-fidelity mock transcript if backend error or no key
+        // Explain missing Groq Key Vault configuration clearly in terminal logs, then fallback gracefully!
         setTimeout(() => {
           setUploading(false);
           setUploadedFileName(file.name);
@@ -92,6 +92,12 @@ export default function AgentDetailPage() {
 
           setTerminalLogs(prev => [
             ...prev,
+            {
+              id: Date.now().toString() + "_upload_fail_key",
+              timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+              text: `> INGESTION NOTICE: No Groq API Key found. Real-time Speech-to-Text is offline. Please configure your Groq key in the Key Vault at the top right to process raw audio waveforms. Loaded clinical trial sample.`,
+              type: "error"
+            },
             {
               id: Date.now().toString() + "_upload_done",
               timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
@@ -107,19 +113,6 @@ export default function AgentDetailPage() {
       reader.onload = (e) => {
         const rawText = e.target?.result as string || "";
         
-        // Heuristic to detect binary files (e.g. check for null bytes)
-        let isBinary = false;
-        const sample = rawText.substring(0, 1000);
-        let nullCount = 0;
-        for (let i = 0; i < sample.length; i++) {
-          if (sample.charCodeAt(i) === 0) {
-            nullCount++;
-          }
-        }
-        if (nullCount > 2) {
-          isBinary = true;
-        }
-
         setTimeout(() => {
           setTerminalLogs(prev => [
             ...prev,
@@ -136,13 +129,8 @@ export default function AgentDetailPage() {
           setUploading(false);
           setUploadedFileName(file.name);
           
-          if (isBinary) {
-            setInputData(
-              `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`
-            );
-          } else {
-            setInputData(rawText);
-          }
+          // ABSOLUTELY NEVER REPLACE THE RAW TEXT OF THE UPLOADED TEXT-BASED FILE!
+          setInputData(rawText);
           
           setTerminalLogs(prev => [
             ...prev,
