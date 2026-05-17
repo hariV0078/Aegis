@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 import { PrivacyBadge } from "@/components/PrivacyBadge";
@@ -28,6 +28,72 @@ export default function AgentDetailPage() {
 
   const [uploading, setUploading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    setUploadedFileName(null);
+    setInputData("");
+
+    setTerminalLogs(prev => [
+      ...prev,
+      {
+        id: Date.now().toString() + "_upload_start",
+        timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+        text: `> FILE INGESTION: Ingesting local file "${file.name}"...`,
+        type: "system"
+      }
+    ]);
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const text = e.target?.result as string || "";
+      
+      setTimeout(() => {
+        setTerminalLogs(prev => [
+          ...prev,
+          {
+            id: Date.now().toString() + "_transcribing",
+            timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+            text: `> AI VERBATIM ENGINE: Extracting and parsing document contents...`,
+            type: "thought"
+          }
+        ]);
+      }, 1000);
+
+      setTimeout(() => {
+        setUploading(false);
+        setUploadedFileName(file.name);
+        if (file.name.endsWith(".txt")) {
+          setInputData(text);
+        } else {
+          setInputData(
+            `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`
+          );
+        }
+        
+        setTerminalLogs(prev => [
+          ...prev,
+          {
+            id: Date.now().toString() + "_upload_done",
+            timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+            text: `> FILE SUCCESS: Parsed "${file.name}" verbatim!`,
+            type: "thought"
+          }
+        ]);
+      }, 2500);
+    };
+
+    if (file.name.endsWith(".txt")) {
+      reader.readAsText(file);
+    } else {
+      reader.readAsArrayBuffer(file);
+    }
+  };
 
   const hasFileUpload = useMemo(() => {
     if (!agent?.config_json) return false;
@@ -322,9 +388,18 @@ export default function AgentDetailPage() {
                   padding: "24px", 
                   textAlign: "center", 
                   background: "rgba(0, 240, 255, 0.02)",
-                  position: "relative"
+                  position: "relative",
+                  cursor: "pointer"
                 }}
+                onClick={() => fileInputRef.current?.click()}
               >
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  style={{ display: "none" }} 
+                  accept=".wav,.mp3,.txt,.pdf"
+                />
                 {uploading ? (
                   <div className="stack" style={{ alignItems: "center", gap: "12px" }}>
                     <div style={{ display: "flex", gap: "6px", justifyContent: "center", padding: "10px" }}>
@@ -341,7 +416,9 @@ export default function AgentDetailPage() {
                       <polyline points="17 8 12 3 7 8" />
                       <line x1="12" y1="3" x2="12" y2="15" />
                     </svg>
-                    <p style={{ margin: 0, fontWeight: 500 }}>Drag & drop clinical recording here or select a file</p>
+                    <p style={{ margin: 0, fontWeight: 500 }}>
+                      {uploadedFileName ? `Ingested: ${uploadedFileName}` : "Drag & drop clinical recording here or select a file"}
+                    </p>
                     <span style={{ fontSize: "12px", opacity: 0.6 }}>Supports .wav, .mp3, .txt, .pdf</span>
                   </div>
                 )}
