@@ -37,7 +37,37 @@ Hard rules:
 - Valid tool_names for workflow_nodes: web_search, http_call, email_send, database_query, llm_call
 """.strip()
 
-ALLOWED_TOOLS = {"web_search", "http_call", "email_send", "database_query", "llm_call"}
+ALLOWED_TOOLS = {
+    "classifier",
+    "code_runner",
+    "csv_parser",
+    "email_send",
+    "file_read",
+    "file_upload",
+    "file_write",
+    "filter_if",
+    "filter_node",
+    "http_call",
+    "if_conditional",
+    "json_parser",
+    "llm_prompt",
+    "llm_call",
+    "manual_input",
+    "merge",
+    "midnight_anchor",
+    "pii_stripper",
+    "privacy_audit",
+    "reidentifier",
+    "schedule_trigger",
+    "sentiment",
+    "set_variable",
+    "summarizer",
+    "template_renderer",
+    "text_splitter",
+    "web_search",
+    "webhook_trigger"
+}
+
 DEFAULT_CONFIG = {
     "name": "privacy-agent",
     "goal": "Analyze anonymized input and surface patterns without exposing private data.",
@@ -66,6 +96,9 @@ DEFAULT_CONFIG = {
             "params": {"instruction": "Summarize the findings for the user"},
         },
     ],
+    "edges": [
+        {"from": "node-1", "to": "node-2"}
+    ]
 }
 
 
@@ -89,9 +122,8 @@ def _normalize_config(config: dict) -> dict:
     if not isinstance(workflow_nodes, list) or not workflow_nodes:
         normalized["workflow_nodes"] = DEFAULT_CONFIG["workflow_nodes"]
     else:
-        # Basic validation of nodes
         valid_nodes = []
-        for i, node in enumerate(workflow_nodes[:10]):
+        for i, node in enumerate(workflow_nodes[:15]):
             if isinstance(node, dict) and node.get("tool_name") in ALLOWED_TOOLS:
                 valid_nodes.append({
                     "id": node.get("id", f"node-{i}"),
@@ -100,6 +132,9 @@ def _normalize_config(config: dict) -> dict:
                     "params": node.get("params", {}),
                 })
         normalized["workflow_nodes"] = valid_nodes if valid_nodes else DEFAULT_CONFIG["workflow_nodes"]
+
+    edges = config.get("edges", [])
+    normalized["edges"] = edges if isinstance(edges, list) else []
     return normalized
 
 
