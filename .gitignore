@@ -1,0 +1,16 @@
+.env
+.env.local
+__pycache__/
+*.pyc
+venv/
+.venv/
+backend/.venv/
+backend/privacyforge.db
+privacyforge.db
+backend/audit.jsonl
+frontend/node_modules/
+frontend/.next/
+frontend/.turbo/
+node_modules/
+.next/
+.DS_Store

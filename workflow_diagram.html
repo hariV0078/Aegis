@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrivacyForge Workflow Diagram</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #050505;
+      --panel: #121212;
+      --panel-2: #0c0f10;
+      --line: rgba(161, 239, 248, 0.18);
+      --text: #e5e2e1;
+      --muted: #889394;
+      --accent: #a1eff8;
+      --accent-2: #8fffd3;
+      --danger: #ffb4ab;
+      --font-body: "Space Grotesk", "Segoe UI", sans-serif;
+      --font-mono: "JetBrains Mono", "Consolas", monospace;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at top right, rgba(161, 239, 248, 0.12), transparent 30%),
+        radial-gradient(circle at bottom left, rgba(143, 255, 211, 0.08), transparent 26%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+    }
+
+    .shell {
+      width: min(1400px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero {
+      display: grid;
+      gap: 18px;
+      padding: 28px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18, 18, 18, 0.96), rgba(12, 15, 16, 0.92));
+      box-shadow: inset 0 0 32px rgba(161, 239, 248, 0.04);
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      width: fit-content;
+      padding: 6px 10px;
+      border: 1px solid rgba(161, 239, 248, 0.3);
+      background: rgba(161, 239, 248, 0.06);
+      color: var(--accent);
+      font: 700 11px/1 var(--font-mono);
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3 {
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    h1 { font-size: clamp(2.2rem, 3.5vw, 3.8rem); }
+    h2 { font-size: clamp(1.35rem, 2vw, 2rem); }
+
+    .subcopy {
+      max-width: 72ch;
+      margin: 0;
+      color: var(--muted);
+      font: 500 14px/1.7 var(--font-mono);
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .panel {
+      padding: 18px;
+      border: 1px solid var(--line);
+      background: rgba(12, 15, 16, 0.88);
+    }
+
+    .panel__title {
+      margin-bottom: 12px;
+      color: var(--accent);
+      font: 700 12px/1 var(--font-mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .diagram {
+      overflow-x: auto;
+      padding: 8px;
+      border: 1px solid rgba(161, 239, 248, 0.08);
+      background: rgba(0, 0, 0, 0.22);
+    }
+
+    .notes {
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .note {
+      padding: 14px;
+      border: 1px solid rgba(161, 239, 248, 0.12);
+      background: rgba(255, 255, 255, 0.02);
+      font: 500 13px/1.6 var(--font-mono);
+      color: var(--text);
+    }
+
+    .note strong {
+      color: var(--accent-2);
+      font-weight: 700;
+    }
+
+    @media (max-width: 900px) {
+      .notes { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <span class="eyebrow">PrivacyForge Workflow</span>
+      <h1>End-to-End App Flow</h1>
+      <p class="subcopy">
+        This page shows the full PrivacyForge workflow: user input, agent creation, token_map-preserving
+        execution, local SQLite persistence, and the Midnight proof seam for on-chain anchoring.
+      </p>
+    </section>
+
+    <section class="grid">
+      <div class="panel">
+        <div class="panel__title">High-Level Flow</div>
+        <div class="diagram mermaid">
+flowchart TD
+  A["User opens PrivacyForge UI"] --> B{"Choose action"}
+  B -->|Build single agent| C["Landing page: describe agent"]
+  B -->|Build workflow| D["Workflow builder page"]
+  C --> E["Frontend sends createAgent request"]
+  D --> F["Frontend sends workflow JSON"]
+  E --> G["FastAPI agents POST"]
+  F --> G
+  G --> H["Generate agent config"]
+  H --> I["Store Agent in SQLite"]
+  I --> J["Agent detail page"]
+  J --> K["User enters input and runs agent"]
+  K --> L["FastAPI agent run POST"]
+  L --> M{"Workflow attached?"}
+  M -->|Yes| N["run_agent workflow path"]
+  M -->|No| O["run_agent single-tool path"]
+  N --> P["Strip PII and create token_map"]
+  O --> P
+  P --> Q["Execute workflow nodes sequentially"]
+  Q --> R["Preserve token_map through all nodes"]
+  R --> S["Re-identify only at the end"]
+  S --> T["Return output plus privacy counters"]
+  T --> U["Save AgentRun in SQLite"]
+  T --> V["Schedule Midnight anchor"]
+  V --> W["Build commitment from agent_id, pii_count, token_map_hash, timestamp"]
+  W --> X{"Midnight configured?"}
+  X -->|No| Y["Store local proof status only"]
+  X -->|Yes| Z["Submit proof anchor to Midnight testnet"]
+  Z --> AA["Receive midnight_tx_hash"]
+  AA --> AB["Update AgentRun in SQLite"]
+  AB --> AC["Frontend shows MidnightProofBadge"]
+  Y --> AC
+  U --> AD["Frontend run history refresh"]
+  AC --> AD
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">Execution Sequence</div>
+        <div class="diagram mermaid">
+sequenceDiagram
+  participant User as User
+  participant UI as Next.js UI
+  participant API as FastAPI backend
+  participant Runner as agent_runner
+  participant Exec as workflow_executor
+  participant Privacy as privacy service
+  participant DB as SQLite
+  participant Midnight as Midnight logger
+
+  User->>UI: Create agent or workflow
+  UI->>API: POST agents
+  API->>DB: Insert Agent and workflow JSON
+  DB-->>API: Agent saved
+  API-->>UI: Agent created
+
+  User->>UI: Run agent with input data
+  UI->>API: POST agent run
+  API->>DB: Load Agent and workflow JSON
+  API->>Runner: run_agent(...)
+  Runner->>Exec: execute workflow or single tool path
+  Exec->>Privacy: strip_pii(input_data)
+  Privacy-->>Exec: anonymized text + token_map
+  loop Each workflow node
+    Exec->>Exec: execute node
+    Exec->>Exec: record token_map hash
+  end
+  Exec->>Privacy: reidentify(final_output, token_map)
+  Privacy-->>Exec: final output
+  Exec-->>Runner: output + pii_stripped + token_map_hashes
+  Runner-->>API: result
+  API->>DB: Insert AgentRun
+  API-->>UI: result returned
+  API->>Midnight: schedule anchor
+  Midnight->>Midnight: build commitment
+  Midnight->>Midnight: submit or mark not_configured
+  Midnight->>DB: update AgentRun.midnight_tx_hash / status
+  UI->>API: GET agent runs
+  API-->>UI: refreshed run history
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">Data Flow</div>
+        <div class="diagram mermaid">
+flowchart LR
+  S1[User input] --> S2[PII stripping]
+  S2 --> S3[token_map]
+  S3 --> S4[Workflow execution]
+  S4 --> S5[Final output]
+  S5 --> S6[SQLite AgentRun]
+  S6 --> S7[Midnight tx hash]
+  S7 --> S8[Explorer link in UI]
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__title">Key Guarantees</div>
+        <div class="notes">
+          <div class="note"><strong>PII first:</strong> input is anonymized before model or tool execution.</div>
+          <div class="note"><strong>State integrity:</strong> token_map stays with workflow state through every node.</div>
+          <div class="note"><strong>Local storage:</strong> agents and runs are persisted in SQLite only.</div>
+          <div class="note"><strong>Midnight seam:</strong> proof anchoring is optional and testnet-oriented, with a local fallback.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: "dark",
+      securityLevel: "loose",
+      fontFamily: "Space Grotesk, Segoe UI, sans-serif",
+      flowchart: { useMaxWidth: true, curve: "basis" },
+      sequence: { useMaxWidth: true },
+    });
+  </script>
+</body>
+</html>

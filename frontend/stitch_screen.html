@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-mono/geist-mono.css" rel="stylesheet"/>
+<link href="https://cdn.jsdelivr.net/npm/geist@1.3.0/dist/fonts/geist-sans/geist-sans.css" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-tertiary-container": "#76631a",
+                    "on-primary": "#00363b",
+                    "on-tertiary-fixed": "#231b00",
+                    "on-error-container": "#ffdad6",
+                    "on-error": "#690005",
+                    "on-surface": "#e0e3e3",
+                    "on-surface-variant": "#bec8ca",
+                    "primary-container": "#a1eff8",
+                    "surface-dim": "#101415",
+                    "outline": "#889394",
+                    "inverse-on-surface": "#2d3132",
+                    "primary-fixed": "#a1eff8",
+                    "background": "#101415",
+                    "primary-fixed-dim": "#85d3dc",
+                    "on-primary-container": "#126f77",
+                    "on-background": "#e0e3e3",
+                    "on-tertiary": "#3b2f00",
+                    "secondary": "#ffb3af",
+                    "on-secondary": "#68000e",
+                    "surface-container-lowest": "#0b0f0f",
+                    "on-primary-fixed-variant": "#004f55",
+                    "on-secondary-container": "#5c000b",
+                    "secondary-fixed-dim": "#ffb3af",
+                    "on-primary-fixed": "#002023",
+                    "surface-container-high": "#272b2b",
+                    "surface-variant": "#323536",
+                    "primary": "#ffffff",
+                    "tertiary-fixed": "#fbe18c",
+                    "surface": "#101415",
+                    "error-container": "#93000a",
+                    "tertiary-fixed-dim": "#dec573",
+                    "error": "#ffb4ab",
+                    "on-tertiary-fixed-variant": "#554500",
+                    "inverse-primary": "#026971",
+                    "tertiary-container": "#fbe18c",
+                    "surface-tint": "#85d3dc",
+                    "on-secondary-fixed-variant": "#930019",
+                    "surface-container": "#1c2021",
+                    "inverse-surface": "#e0e3e3",
+                    "tertiary": "#ffffff",
+                    "on-secondary-fixed": "#410006",
+                    "surface-container-highest": "#323536",
+                    "secondary-fixed": "#ffdad8",
+                    "surface-container-low": "#181c1d",
+                    "surface-bright": "#363a3a",
+                    "secondary-container": "#ff5357",
+                    "outline-variant": "#3f494a",
+                    "pale-cyan": "#a5f3fc",
+                    "crimson-alert": "#ff0033"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "panel-padding": "24px",
+                    "unit": "4px",
+                    "margin-mobile": "16px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-xl": ["Geist", "sans-serif"],
+                    "label-caps": ["Geist Mono", "monospace"],
+                    "code-sm": ["Geist Mono", "monospace"],
+                    "headline-lg": ["Geist", "sans-serif"],
+                    "body-md": ["Geist Mono", "monospace"],
+                    "headline-lg-mobile": ["Geist", "sans-serif"]
+            },
+            "fontSize": {
+                    "headline-xl": ["64px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "800"}],
+                    "label-caps": ["10px", {"lineHeight": "1", "letterSpacing": "0.15em", "fontWeight": "700"}],
+                    "code-sm": ["12px", {"lineHeight": "1.4", "letterSpacing": "0.05em", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["14px", {"lineHeight": "1.6", "letterSpacing": "0em", "fontWeight": "400"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "700"}]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+        body {
+            background-color: #101415;
+            color: #e0e3e3;
+            overflow-x: hidden;
+        }
+        /* Scanline Overlay */
+        .scanlines::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(18, 16, 16, 0) 50%,
+                rgba(0, 0, 0, 0.1) 50%
+            );
+            background-size: 100% 4px;
+            z-index: 100;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 20px rgba(165, 243, 252, 0.4);
+        }
+        .glow-cyan:hover {
+            box-shadow: 0 0 40px rgba(165, 243, 252, 0.7);
+        }
+        .crimson-pulse {
+            animation: pulse-crimson 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse-crimson {
+            0%, 100% { opacity: 1; text-shadow: 0 0 5px #ff0033; }
+            50% { opacity: 0.5; text-shadow: 0 0 20px #ff0033; }
+        }
+        .glass-panel {
+            background: rgba(14, 14, 14, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .grid-bg {
+            background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md scanlines">
+<!-- Top Navigation Shell -->
+<nav class="fixed top-0 w-full z-50 flex justify-between items-center px-margin-desktop py-4 bg-surface/80 backdrop-blur-xl border-b border-white/10">
+<div class="flex items-center gap-4">
+<span class="font-headline-lg text-headline-lg tracking-tighter text-primary">TERMINAL</span>
+<div class="hidden md:flex gap-6">
+<a class="font-label-caps text-label-caps text-primary font-bold border-b border-primary pb-1" href="#">Directives</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Archives</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant hover:text-primary transition-colors duration-300" href="#">Uplink</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 px-3 py-1 bg-surface-container border border-white/5 rounded-sm">
+<div class="w-2 h-2 rounded-full bg-pale-cyan crimson-pulse"></div>
+<span class="font-code-sm text-code-sm text-on-surface">System Status: Nominal</span>
+</div>
+</div>
+</nav>
+<main class="relative">
+<!-- Hero Section -->
+<section class="relative min-h-screen flex flex-col items-center justify-center text-center px-margin-mobile md:px-margin-desktop grid-bg">
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-background/50 to-background pointer-events-none"></div>
+<!-- Hero Decorative Image -->
+<div class="absolute inset-0 z-0 opacity-20">
+<img class="w-full h-full object-cover" data-alt="A cinematic, high-contrast digital environment featuring complex mesh networks and abstract data architectures glowing in pale cyan against a deep obsidian background. Subtle smoke and atmospheric depth layers suggest a secure, hidden server vault. The aesthetic is ultra-modern, brutalist, and technical, with sharp geometric patterns and cold, clinical lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwsjn6bNNpbZctjsgWyBAcy-PiEA-vmz2ZJXVM8uizzc1z2kpCJEE2F7iWMt80Nz5xLBVkgfjHSQvayOntSAToepGbX_bYnC08p_Dd8HezmMcJs7VvYMTVqvX8Ow7oEBscTB3VzUcegJkzME5WIKEzW84ADvK7kNaHlvdS1m4wViOGfOpcn0hVSTby065X87DMoAmXOi2sySrlaWR9bjKBg_xK2ZtOAaHTFylmPYKOE1vEgYA1uQnXE6I0falopS622z1RMePdVi4"/>
+</div>
+<div class="relative z-10 max-w-5xl">
+<div class="inline-block mb-6 px-3 py-1 border border-pale-cyan/30 bg-pale-cyan/5">
+<span class="font-code-sm text-code-sm text-pale-cyan uppercase tracking-widest">[ SECURITY CLEARANCE: LEVEL 0 ]</span>
+</div>
+<h1 class="font-headline-xl text-headline-xl text-primary mb-6 leading-tight">
+                    BUILD THE <br class="hidden md:block"/> UNTRACEABLE
+                </h1>
+<p class="font-body-md text-body-md text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed opacity-80">
+                    Deploy sovereign AI agents on a decentralized, encrypted backbone. 
+                    Absolute privacy is no longer a luxury—it is the protocol.
+                </p>
+<div class="flex flex-col md:flex-row items-center justify-center gap-4">
+<button class="group relative px-8 py-4 bg-pale-cyan text-on-primary font-label-caps text-label-caps tracking-widest glow-cyan active:scale-95 transition-all duration-300">
+                        INITIALIZE UPLINK
+                    </button>
+<button class="px-8 py-4 border border-white/20 hover:border-white/40 font-label-caps text-label-caps tracking-widest transition-all">
+                        VIEW PROTOCOLS
+                    </button>
+</div>
+</div>
+<div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-50">
+<span class="font-code-sm text-code-sm">SCROLL_TO_DESCEND</span>
+<span class="material-symbols-outlined animate-bounce">keyboard_double_arrow_down</span>
+</div>
+</section>
+<!-- Operational Capabilities Section -->
+<section class="py-24 px-margin-mobile md:px-margin-desktop bg-surface-dim relative border-t border-white/5">
+<div class="max-w-7xl mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-4">
+<div>
+<span class="font-code-sm text-code-sm text-pale-cyan mb-2 block uppercase">Core Architecture</span>
+<h2 class="font-headline-lg text-headline-lg text-primary">OPERATIONAL CAPABILITIES</h2>
+</div>
+<div class="h-px flex-grow mx-8 bg-white/10 hidden md:block"></div>
+<div class="font-code-sm text-code-sm text-on-surface-variant">
+                        VERSION_4.02.9 // REPOS_STABLE
+                    </div>
+</div>
+<!-- Features Bento/Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Card 1 -->
+<div class="glass-panel p-panel-padding relative group hover:border-pale-cyan/50 transition-all duration-500 overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-pale-cyan" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-4 block">MODULE_01</span>
+<h3 class="font-headline-lg text-headline-lg text-primary mb-4">Encrypted Core</h3>
+<p class="text-on-surface-variant opacity-70 mb-6">
+                            Utilize advanced end-to-end encryption layers that ensure your AI's decision-making process and data remains entirely opaque to third parties.
+                        </p>
+<div class="flex items-center gap-2 font-code-sm text-code-sm text-pale-cyan">
+<span class="material-symbols-outlined text-sm">lock</span>
+                            AES-256-GCM ACTIVE
+                        </div>
+<div class="mt-8 border-t border-white/5 pt-4">
+<img class="w-full h-32 object-cover grayscale opacity-30 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" data-alt="Macro view of a sleek, dark server motherboard with glowing cyan light trails flowing through microscopic circuits. The lighting is moody and noir-inspired, emphasizing the sharp edges of the hardware and the complex, technical nature of the encrypted core. Deep shadows contrast with the electric cyan glow." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDNoge0g-1VHCeKSpHGWeMuEhSj6F_cKuaxRNLbz0psW7nx9Ufp5DlmT-sfUwfBKiPM46Ql_Q2AgZGTFCfHZAkQTueqjzjqGOUoFRhOXaq9YYKT1EKEu9b7tW-dpO31Aqy73-qRExXD9PiNgxCCONU1c2Mg5-9V_dGLNFuwPFFx2KA9cIYDOkdcTbF3Hy7nNaw14AN8wr2jAd3brykZKUNAGuCnVwpfQPLvSZLHUDvFjlXid7RIvJQuZ7Jb6yIaeQOmJegeok8mcnU"/>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="glass-panel p-panel-padding relative group hover:border-pale-cyan/50 transition-all duration-500 overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-pale-cyan" style="font-variation-settings: 'FILL' 1;">psychology</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-4 block">MODULE_02</span>
+<h3 class="font-headline-lg text-headline-lg text-primary mb-4">Autonomous Logic</h3>
+<p class="text-on-surface-variant opacity-70 mb-6">
+                            Agents operate with absolute autonomy, processing complex logic gates across isolated environments without ever phoning home to central servers.
+                        </p>
+<div class="flex items-center gap-2 font-code-sm text-code-sm text-crimson-alert crimson-pulse">
+<span class="material-symbols-outlined text-sm">emergency_home</span>
+                            NEURAL_ISOLATION_REACHED
+                        </div>
+<div class="mt-8 border-t border-white/5 pt-4">
+<img class="w-full h-32 object-cover grayscale opacity-30 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" data-alt="An abstract visualization of a neural network composed of sharp, angular geometric shapes suspended in a void. The connections between nodes are fine, glowing white lines, with critical pathways pulsing in a deep crimson. The overall style is brutalist and minimalist, suggesting high-speed autonomous computation in a secure digital space." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAoCU0JkmNE3d4MkcphjkQNM3ayZBozHulcRMsWe5K07ytX7121VigECoa5Nip06p9VvhIBjQ4cLcMM2FWPcEMFhmQ96rwwfVA0AROwpEIYMPUxFp3eZpLn4IvmALB2w8ijdthTn_GR8cMMgN-LZDbbL5g-YtuV4oYDAiFHhiJXeRjsWrgrEmurV-CL5phBYKgU13EmljuQeIOhYbszJgGUrpDAfcjiRLHktfrsALKSMnu1B4320cAD2NpSNTg1TtqgZf2PwSU7e1o"/>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="glass-panel p-panel-padding relative group hover:border-pale-cyan/50 transition-all duration-500 overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-pale-cyan" style="font-variation-settings: 'FILL' 1;">hub</span>
+</div>
+<span class="font-label-caps text-label-caps text-on-surface-variant mb-4 block">MODULE_03</span>
+<h3 class="font-headline-lg text-headline-lg text-primary mb-4">Global Node Network</h3>
+<p class="text-on-surface-variant opacity-70 mb-6">
+                            Harness a decentralized infrastructure of encrypted nodes. Your agents are distributed globally, making the network impossible to dismantle.
+                        </p>
+<div class="flex items-center gap-2 font-code-sm text-code-sm text-pale-cyan">
+<span class="material-symbols-outlined text-sm">public</span>
+                            NODES_ONLINE: 14,882
+                        </div>
+<div class="mt-8 border-t border-white/5 pt-4">
+<img class="w-full h-32 object-cover grayscale opacity-30 group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700" data-alt="A dark, satellite-perspective view of Earth at night, where only the digital network connections are visible as a shimmering, intricate web of pale cyan light. The planet itself is a silhouette against the stars, emphasizing the global, decentralized reach of the node network. The atmosphere is quiet, cold, and immensely powerful." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBhPGoq2TZMSFI6wZQrsvZanSmB-a8i-QZjSYdvPjL-T4Yf1xLyppMUQflv7bNoIxnBHRr98e86SPwDV29raWiWue0VY5JxKjtQ9DoAjz_OCM7zzWvQ6fL44DEGy_adiOvJu0tcoK8G31yjV_9v9Eg6OE5vrAQpEGd9pywwBa1Z347iWN7XN50gZHzlb1zq6YaHKS3akAHwNn3bd0JW0ssfL-6vd8gn5faRmCLO_KxAgtRQy8WIfaXxqLXEEvcCkDed4EKNQatz2bQ"/>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Technical Dashboard Section -->
+<section class="py-24 px-margin-mobile md:px-margin-desktop bg-background border-t border-white/10">
+<div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+<div class="order-2 lg:order-1">
+<div class="bg-surface-container-low border border-white/10 rounded-lg overflow-hidden shadow-2xl">
+<div class="bg-surface-container-high px-4 py-2 flex items-center justify-between border-b border-white/10">
+<div class="flex gap-1.5">
+<div class="w-2 h-2 rounded-full bg-crimson-alert"></div>
+<div class="w-2 h-2 rounded-full bg-tertiary-fixed"></div>
+<div class="w-2 h-2 rounded-full bg-pale-cyan"></div>
+</div>
+<div class="font-code-sm text-code-sm text-on-surface-variant uppercase tracking-tighter">AGENT_BUILDER_CMD</div>
+</div>
+<div class="p-6 font-code-sm text-code-sm leading-relaxed overflow-x-auto">
+<div class="flex gap-4 mb-2">
+<span class="text-on-surface-variant opacity-30">01</span>
+<span class="text-pale-cyan">Initialize</span>
+<span class="text-primary">--protocol secure_uplink</span>
+</div>
+<div class="flex gap-4 mb-2">
+<span class="text-on-surface-variant opacity-30">02</span>
+<span class="text-on-surface-variant">&gt;&gt; Authenticating node signature...</span>
+</div>
+<div class="flex gap-4 mb-2">
+<span class="text-on-surface-variant opacity-30">03</span>
+<span class="text-on-surface-variant">&gt;&gt; [SUCCESS] Node 0x7F2A validated.</span>
+</div>
+<div class="flex gap-4 mb-2">
+<span class="text-on-surface-variant opacity-30">04</span>
+<span class="text-pale-cyan">Deploy</span>
+<span class="text-primary">Agent_Alpha --isolated</span>
+</div>
+<div class="flex gap-4 mb-2">
+<span class="text-on-surface-variant opacity-30">05</span>
+<span class="text-on-surface-variant">&gt;&gt; Encoding neural logic gates...</span>
+</div>
+<div class="flex gap-4 mb-2">
+<span class="text-on-surface-variant opacity-30">06</span>
+<span class="text-on-surface-variant">&gt;&gt; Applying zero-knowledge proofs...</span>
+</div>
+<div class="flex gap-4">
+<span class="text-on-surface-variant opacity-30">07</span>
+<span class="text-crimson-alert font-bold">UPLINK ESTABLISHED. STATUS: UNTRACEABLE</span>
+<span class="w-2 h-4 bg-primary animate-pulse inline-block ml-1"></span>
+</div>
+</div>
+</div>
+</div>
+<div class="order-1 lg:order-2 space-y-8">
+<span class="font-label-caps text-label-caps text-pale-cyan tracking-widest px-3 py-1 bg-pale-cyan/10 border border-pale-cyan/20 inline-block">TERMINAL_CONTROL</span>
+<h2 class="font-headline-xl text-headline-xl text-primary">COMPLETE SOVEREIGNTY</h2>
+<p class="text-on-surface-variant leading-relaxed">
+                        The Neural Archive interface is built for architects of the new web. Command your AI fleet with high-level directives or dive into the low-level code that governs their existence. No trackers, no backdoors, no compromises.
+                    </p>
+<ul class="space-y-4 font-code-sm text-code-sm">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-pale-cyan text-lg">check_circle</span>
+<span>Zero-knowledge architecture by default</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-pale-cyan text-lg">check_circle</span>
+<span>On-chain verification for agent identity</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-pale-cyan text-lg">check_circle</span>
+<span>Shard-based data storage across 10k+ nodes</span>
+</li>
+</ul>
+</div>
+</div>
+</section>
+<!-- CTA Section -->
+<section class="py-32 px-margin-mobile md:px-margin-desktop bg-surface relative overflow-hidden">
+<div class="absolute inset-0 bg-pale-cyan/5 blur-3xl rounded-full -translate-y-1/2"></div>
+<div class="max-w-4xl mx-auto text-center relative z-10">
+<h2 class="font-headline-xl text-headline-xl text-primary mb-8">READY TO DEPLOY?</h2>
+<p class="text-on-surface-variant text-body-md mb-12 max-w-xl mx-auto">
+                    Join the vanguard of privacy-preserving AI. The network is waiting for your signature. 
+                    Begin the initialization sequence now.
+                </p>
+<button class="px-12 py-5 bg-primary text-background font-label-caps text-label-caps tracking-widest hover:bg-pale-cyan transition-colors active:scale-95 duration-300">
+                    START DEPLOYMENT PHASE
+                </button>
+</div>
+</section>
+</main>
+<!-- Footer Shell -->
+<footer class="w-full px-margin-desktop py-panel-padding grid grid-cols-1 md:grid-cols-4 gap-gutter bg-surface-dim/95 backdrop-blur-md border-t border-white/20">
+<div class="col-span-1 md:col-span-1">
+<div class="font-label-caps text-label-caps text-on-surface mb-6 uppercase tracking-tighter">Neural Archive</div>
+<p class="font-code-sm text-code-sm text-outline mb-4">
+                The backbone of the untraceable web. <br/>
+                Sovereign. Private. Decentralized.
+            </p>
+</div>
+<div class="col-span-1">
+<h4 class="font-label-caps text-label-caps text-primary mb-6">Protocols</h4>
+<ul class="font-code-sm text-code-sm text-outline space-y-4">
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Directives</a></li>
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Encrypted Shell</a></li>
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Node Consensus</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="font-label-caps text-label-caps text-primary mb-6">Security</h4>
+<ul class="font-code-sm text-code-sm text-outline space-y-4">
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Privacy Policy</a></li>
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Nodes</a></li>
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Legal</a></li>
+</ul>
+</div>
+<div class="col-span-1">
+<h4 class="font-label-caps text-label-caps text-primary mb-6">Connection</h4>
+<ul class="font-code-sm text-code-sm text-outline space-y-4">
+<li class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-pale-cyan"></span>
+<a class="hover:text-primary hover:glow-sm transition-all" href="#">Secure Connection</a>
+</li>
+<li><a class="hover:text-primary hover:glow-sm transition-all" href="#">Contact Root</a></li>
+</ul>
+</div>
+<div class="col-span-1 md:col-span-4 mt-12 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
+<div class="font-code-sm text-code-sm text-outline uppercase">© 2024 NEURAL ARCHIVE. ALL RIGHTS RESERVED.</div>
+<div class="flex gap-6 font-code-sm text-code-sm text-outline">
+<span>LATENCY: 14MS</span>
+<span class="text-pale-cyan">SECURE_LINK_ACTIVE</span>
+</div>
+</div>
+</footer>
+</body></html>

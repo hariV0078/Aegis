@@ -1,0 +1,18 @@
+pragma language_version >= 0.23;
+
+// PrivacyForge Midnight audit scaffold.
+//
+// This file marks the intended contract boundary for anchoring workflow-run
+// privacy proofs on Midnight testnet. The full proof/deployment toolchain is not
+// checked into this repository yet, so this contract remains a scaffold until the
+// Midnight build pipeline is added.
+
+export ledger privacy_receipt: Opaque<"string">;
+
+export circuit storeRunProof(run_proof: Opaque<"string">): [] {
+  privacy_receipt = disclose(run_proof);
+}
+
+export circuit verify_privacy_guarantee(run_id: Opaque<"string">): [] {
+  privacy_receipt = disclose(run_id);
+}
