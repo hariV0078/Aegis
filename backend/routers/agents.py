@@ -110,10 +110,13 @@ async def run_agent_endpoint(
     )
 
     run = AgentRun(
+        id=result["run_id"],
         agent_id=agent_id,
         started_at=run_started_at,
         finished_at=datetime.utcnow(),
         status=result["status"],
+        output=result.get("output"),
+        node_outputs_json=json.dumps(result.get("node_outputs", [])),
         output_summary=str(result.get("output", ""))[:500],
         pii_items_stripped=result.get("pii_stripped", 0),
         llm_provider=req.llm_provider,
