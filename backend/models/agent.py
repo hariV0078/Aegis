@@ -29,6 +29,7 @@ class AgentRun(SQLModel, table=True):
     output_summary: Optional[str] = None
     output: Optional[str] = None
     node_outputs_json: Optional[str] = None
+    token_map_json: Optional[str] = None
     pii_items_stripped: int = 0
     llm_provider: str = "groq"
     midnight_tx_hash: Optional[str] = None

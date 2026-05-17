@@ -26,6 +26,7 @@ def init_db() -> None:
     _ensure_sqlite_column("agentrun", "midnight_confirmed_at", "DATETIME")
     _ensure_sqlite_column("agentrun", "output", "TEXT")
     _ensure_sqlite_column("agentrun", "node_outputs_json", "TEXT")
+    _ensure_sqlite_column("agentrun", "token_map_json", "TEXT")
 
 
 def get_session():

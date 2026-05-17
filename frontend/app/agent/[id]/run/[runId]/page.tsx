@@ -55,6 +55,15 @@ export default function RunDetailPage() {
     }
   }, [run]);
 
+  const parsedTokenMap = useMemo(() => {
+    if (!run?.token_map_json) return {} as Record<string, string>;
+    try {
+      return JSON.parse(run.token_map_json) as Record<string, string>;
+    } catch {
+      return {} as Record<string, string>;
+    }
+  }, [run]);
+
   // Set first node as selected by default once loaded
   useEffect(() => {
     if (parsedNodeOutputs.length > 0 && !selectedNodeId) {
@@ -297,6 +306,44 @@ export default function RunDetailPage() {
             </div>
           )}
         </section>
+
+        {/* ZK Cryptographic PII Stripped Map Panel */}
+        {Object.keys(parsedTokenMap).length > 0 && (
+          <section className="panel" style={{ padding: "24px" }}>
+            <div className="panel__header" style={{ marginBottom: "16px" }}>
+              <h2 className="panel__title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ color: "var(--accent-cyan)" }}>🛡️</span> Cryptographic ZK Token Map (Anonymized PII Identities)
+              </h2>
+              <p className="panel__subcopy">Aegis automatically extracted and encrypted the following sensitive PII identifiers from the clinical media.</p>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "12px" }}>
+              {Object.entries(parsedTokenMap).map(([placeholder, originalValue]) => (
+                <div 
+                  key={placeholder} 
+                  style={{
+                    background: "rgba(0, 0, 0, 0.4)",
+                    border: "1px solid var(--line-subtle)",
+                    padding: "12px 16px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px"
+                  }}
+                >
+                  <div style={{ fontSize: "10px", color: "var(--accent-cyan)", fontFamily: "var(--mono-font)" }}>
+                    {placeholder}
+                  </div>
+                  <div style={{ fontSize: "13px", fontWeight: "bold", color: "var(--text-primary)" }}>
+                    {originalValue}
+                  </div>
+                  <div style={{ fontSize: "9px", color: "var(--text-muted)", fontFamily: "var(--mono-font)" }}>
+                    ENCRYPTED AT PIPELINE ENTRY
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Final Execution Output Block */}
         <section className="panel" style={{ padding: "24px" }}>

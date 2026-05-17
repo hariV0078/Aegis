@@ -117,6 +117,7 @@ async def run_agent_endpoint(
         status=result["status"],
         output=result.get("output"),
         node_outputs_json=json.dumps(result.get("node_outputs", [])),
+        token_map_json=json.dumps(result.get("token_map", {})),
         output_summary=str(result.get("output", ""))[:500],
         pii_items_stripped=result.get("pii_stripped", 0),
         llm_provider=req.llm_provider,

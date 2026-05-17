@@ -158,6 +158,7 @@ async def execute_workflow(
         "node_count": len(wf.nodes),
         "status": "success",
         "node_outputs": state.node_outputs,
+        "token_map": state.token_map,
     }
 
 

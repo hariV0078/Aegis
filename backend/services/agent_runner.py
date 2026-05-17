@@ -77,6 +77,7 @@ async def run_agent_workflow(
             "node_count": result.get("node_count"),
             "token_map_hashes": result.get("token_map_hashes", []),
             "node_outputs": result.get("node_outputs", []),
+            "token_map": result.get("token_map", {}),
         }
     except Exception as exc:
         await log_event(run_id, "agent_run_failed", {"error": str(exc)})
@@ -168,4 +169,5 @@ Choose one tool and return ONLY JSON with fields tool, params, reasoning.
         "pii_stripped": pii_count,
         "pii_transmitted": 0,
         "tool": tool_name if tool_name in TOOL_MAP else "web_search",
+        "token_map": local_token_map,
     }

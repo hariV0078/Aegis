@@ -55,6 +55,7 @@ export type AgentRun = {
   midnight_status: string;
   midnight_submitted_at: string | null;
   midnight_confirmed_at: string | null;
+  token_map_json?: string | null;
 };
 
 export async function createAgent(payload: {
