@@ -26,6 +26,76 @@ export default function AgentDetailPage() {
   const [error, setError] = useState("");
   const [terminalLogs, setTerminalLogs] = useState<TerminalLog[]>([]);
 
+  const [uploading, setUploading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+
+  const hasFileUpload = useMemo(() => {
+    if (!agent?.config_json) return false;
+    try {
+      const configObj = JSON.parse(agent.config_json);
+      const nodes = configObj.nodes || configObj.workflow_nodes || [];
+      return nodes.some((node: any) => node.tool_name === "file_upload");
+    } catch {
+      return false;
+    }
+  }, [agent]);
+
+  const sampleFiles = [
+    {
+      name: "visit_transcript_042.txt",
+      content: `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`,
+      size: "245 bytes"
+    },
+    {
+      name: "patient_audio_stream.wav",
+      content: `doctor: morning mr. jackson, let's look at those blood lab reports.\npatient: thank you, dr. adams. i was worried my cholesterol was high. my account number is 884-291-992.\ndoctor: cholesterol is 210, slightly elevated. we will monitor it before starting any Lipitor.`,
+      size: "1.2 MB (Audio)"
+    }
+  ];
+
+  const handleFileUploadSimulated = (fileName: string, content: string) => {
+    setUploading(true);
+    setUploadedFileName(null);
+    setInputData("");
+    
+    setTerminalLogs(prev => [
+      ...prev,
+      {
+        id: Date.now().toString() + "_upload_start",
+        timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+        text: `> FILE INGESTION: Reading ${fileName}...`,
+        type: "system"
+      }
+    ]);
+
+    setTimeout(() => {
+      setTerminalLogs(prev => [
+        ...prev,
+        {
+          id: Date.now().toString() + "_transcribing",
+          timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+          text: `> AI AUDIO ENGINE: Transcribing audio frequencies to verbatim text...`,
+          type: "thought"
+        }
+      ]);
+    }, 1000);
+
+    setTimeout(() => {
+      setUploading(false);
+      setUploadedFileName(fileName);
+      setInputData(content);
+      setTerminalLogs(prev => [
+        ...prev,
+        {
+          id: Date.now().toString() + "_upload_done",
+          timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
+          text: `> FILE SUCCESS: Transcribed ${fileName} verbatim!`,
+          type: "thought"
+        }
+      ]);
+    }, 2500);
+  };
+
   useEffect(() => {
     async function load() {
       try {
@@ -229,6 +299,74 @@ export default function AgentDetailPage() {
             isStreaming={running || loading} 
           />
         </section>
+
+        {/* File Upload Section */}
+        {hasFileUpload && (
+          <section className="panel detail-panel" style={{ marginTop: "16px", border: "1px dashed var(--accent-cyan)" }}>
+            <style dangerouslySetInnerHTML={{__html: `
+              @keyframes pulse {
+                0% { transform: scale(0.8); opacity: 0.5; }
+                100% { transform: scale(1.2); opacity: 1; }
+              }
+            `}} />
+            <div className="panel__header">
+              <h2 className="panel__title">File Upload & Transcribe Interface</h2>
+              <p className="panel__subcopy">Upload clinical audio or text documents. Aegis will automatically transcribe them verbatim.</p>
+            </div>
+            
+            <div className="stack" style={{ gap: "16px" }}>
+              <div 
+                style={{ 
+                  border: "2px dashed var(--accent-cyan-dim)", 
+                  borderRadius: "8px", 
+                  padding: "24px", 
+                  textAlign: "center", 
+                  background: "rgba(0, 240, 255, 0.02)",
+                  position: "relative"
+                }}
+              >
+                {uploading ? (
+                  <div className="stack" style={{ alignItems: "center", gap: "12px" }}>
+                    <div style={{ display: "flex", gap: "6px", justifyContent: "center", padding: "10px" }}>
+                      <span className="dot-pulse" style={{ width: "8px", height: "8px", background: "var(--accent-cyan)", borderRadius: "50%", animation: "pulse 1.2s infinite alternate" }}></span>
+                      <span className="dot-pulse" style={{ width: "8px", height: "8px", background: "var(--accent-cyan)", borderRadius: "50%", animation: "pulse 1.2s infinite alternate 0.3s" }}></span>
+                      <span className="dot-pulse" style={{ width: "8px", height: "8px", background: "var(--accent-cyan)", borderRadius: "50%", animation: "pulse 1.2s infinite alternate 0.6s" }}></span>
+                    </div>
+                    <p style={{ color: "var(--accent-cyan)", margin: 0 }}>Transcribing and extracting data verbatim...</p>
+                  </div>
+                ) : (
+                  <div className="stack" style={{ alignItems: "center", gap: "8px" }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--accent-cyan)" }}>
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="17 8 12 3 7 8" />
+                      <line x1="12" y1="3" x2="12" y2="15" />
+                    </svg>
+                    <p style={{ margin: 0, fontWeight: 500 }}>Drag & drop clinical recording here or select a file</p>
+                    <span style={{ fontSize: "12px", opacity: 0.6 }}>Supports .wav, .mp3, .txt, .pdf</span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <span className="field__label" style={{ marginBottom: "8px", display: "block" }}>Quick Upload Sample Files (Hackathon Showcase)</span>
+                <div style={{ display: "flex", gap: "12px" }}>
+                  {sampleFiles.map((file) => (
+                    <button
+                      key={file.name}
+                      type="button"
+                      className="button button--secondary"
+                      style={{ fontSize: "13px", display: "flex", alignItems: "center", gap: "6px" }}
+                      onClick={() => handleFileUploadSimulated(file.name, file.content)}
+                      disabled={uploading || running}
+                    >
+                      📄 {file.name} ({file.size})
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Input & Execution Panel */}
         <section className="panel detail-panel" style={{ marginTop: "16px" }}>
