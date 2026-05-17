@@ -32,6 +32,21 @@ export default function AgentDetailPage() {
         const [nextAgent, nextRuns] = await Promise.all([getAgent(agentId), getRuns(agentId)]);
         setAgent(nextAgent);
         setRuns(nextRuns);
+
+        const nameLower = (nextAgent.name || "").toLowerCase();
+        const descLower = (nextAgent.description || "").toLowerCase();
+        if (
+          nameLower.includes("clinic") || 
+          nameLower.includes("medical") || 
+          nameLower.includes("scribe") ||
+          descLower.includes("clinic") || 
+          descLower.includes("medical") || 
+          descLower.includes("scribe")
+        ) {
+          setInputData(
+            `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`
+          );
+        }
         
         setTerminalLogs([
           {

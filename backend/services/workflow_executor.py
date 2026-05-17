@@ -177,7 +177,8 @@ async def execute_node(
             **node.params,
             "input_data": state.current_data,
             "llm_provider": llm_provider,
-            "api_key": api_key
+            "api_key": api_key,
+            "token_map": state.token_map,
         }
         result = await tool_fn(**kwargs)
         state.current_data = str(result)
