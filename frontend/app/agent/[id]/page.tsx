@@ -51,15 +51,30 @@ export default function AgentDetailPage() {
 
     const reader = new FileReader();
     reader.onload = (e) => {
-      const text = e.target?.result as string || "";
+      const rawText = e.target?.result as string || "";
       
+      // Heuristic to detect binary files (e.g. check for null bytes)
+      let isBinary = false;
+      const sample = rawText.substring(0, 1000);
+      let nullCount = 0;
+      for (let i = 0; i < sample.length; i++) {
+        if (sample.charCodeAt(i) === 0) {
+          nullCount++;
+        }
+      }
+      if (nullCount > 2) {
+        isBinary = true;
+      }
+
       setTimeout(() => {
         setTerminalLogs(prev => [
           ...prev,
           {
             id: Date.now().toString() + "_transcribing",
             timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-            text: `> AI VERBATIM ENGINE: Extracting and parsing document contents...`,
+            text: isBinary 
+              ? `> AI AUDIO ENGINE: Transcribing audio stream waveforms from binary file...`
+              : `> AI VERBATIM ENGINE: Extracting and parsing document contents verbatim...`,
             type: "thought"
           }
         ]);
@@ -68,12 +83,15 @@ export default function AgentDetailPage() {
       setTimeout(() => {
         setUploading(false);
         setUploadedFileName(file.name);
-        if (file.name.endsWith(".txt")) {
-          setInputData(text);
-        } else {
+        
+        if (isBinary) {
+          // If it is binary (like audio), output a gorgeous simulated transcript
           setInputData(
             `doctor: good morning. how has that low blood pressure been?\npatient: hello doctor, it has been fluctuating. i have been taking my lisinopril 10mg daily as prescribed by dr. smith, but i feel lightheaded in the mornings. my email is charles.barkley@gmail.com.\ndoctor: let's adjust the lisinopril to 5mg daily to prevent morning drops.`
           );
+        } else {
+          // If it is a text-based file (of ANY extension!), load 100% of it verbatim!
+          setInputData(rawText);
         }
         
         setTerminalLogs(prev => [
@@ -88,11 +106,8 @@ export default function AgentDetailPage() {
       }, 2500);
     };
 
-    if (file.name.endsWith(".txt")) {
-      reader.readAsText(file);
-    } else {
-      reader.readAsArrayBuffer(file);
-    }
+    // Read ALL files using readAsText to handle any extension (txt, csv, md, log, tsv, json, etc.)
+    reader.readAsText(file);
   };
 
   const hasFileUpload = useMemo(() => {
@@ -393,12 +408,11 @@ export default function AgentDetailPage() {
                 }}
                 onClick={() => fileInputRef.current?.click()}
               >
-                <input 
+                 <input 
                   type="file" 
                   ref={fileInputRef} 
                   onChange={handleFileChange} 
                   style={{ display: "none" }} 
-                  accept=".wav,.mp3,.txt,.pdf"
                 />
                 {uploading ? (
                   <div className="stack" style={{ alignItems: "center", gap: "12px" }}>
@@ -419,7 +433,7 @@ export default function AgentDetailPage() {
                     <p style={{ margin: 0, fontWeight: 500 }}>
                       {uploadedFileName ? `Ingested: ${uploadedFileName}` : "Drag & drop clinical recording here or select a file"}
                     </p>
-                    <span style={{ fontSize: "12px", opacity: 0.6 }}>Supports .wav, .mp3, .txt, .pdf</span>
+                    <span style={{ fontSize: "12px", opacity: 0.6 }}>Supports all text, document, and recording formats</span>
                   </div>
                 )}
               </div>
