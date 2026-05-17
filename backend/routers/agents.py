@@ -110,14 +110,11 @@ async def run_agent_endpoint(
     )
 
     run = AgentRun(
-        id=result["run_id"],
         agent_id=agent_id,
         started_at=run_started_at,
         finished_at=datetime.utcnow(),
         status=result["status"],
         output_summary=str(result.get("output", ""))[:500],
-        output=result.get("output"),
-        node_outputs_json=json.dumps(result.get("node_outputs", [])),
         pii_items_stripped=result.get("pii_stripped", 0),
         llm_provider=req.llm_provider,
         midnight_status="queued",
@@ -175,14 +172,6 @@ def update_agent(agent_id: str, req: UpdateAgentRequest, db: Session = Depends(g
 @router.get("/{agent_id}/runs")
 def get_runs(agent_id: str, db: Session = Depends(get_session)):
     return db.exec(select(AgentRun).where(AgentRun.agent_id == agent_id).order_by(AgentRun.started_at.desc())).all()
-
-
-@router.get("/runs/{run_id}")
-def get_run(run_id: str, db: Session = Depends(get_session)):
-    run = db.get(AgentRun, run_id)
-    if not run:
-        raise HTTPException(status_code=404, detail="Run not found")
-    return run
 
 
 @router.post("/demo/medical-billing")

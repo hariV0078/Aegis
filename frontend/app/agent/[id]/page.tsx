@@ -26,10 +26,6 @@ export default function AgentDetailPage() {
   const [error, setError] = useState("");
   const [terminalLogs, setTerminalLogs] = useState<TerminalLog[]>([]);
 
-  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: string; type: string } | null>(null);
-  const [audioTranscript, setAudioTranscript] = useState<string | null>(null);
-  const [isTranscribing, setIsTranscribing] = useState(false);
-
   useEffect(() => {
     async function load() {
       try {
@@ -83,100 +79,6 @@ export default function AgentDetailPage() {
     }
   }, [agent]);
 
-  const workflow = useMemo(() => {
-    if (!agent || !agent.workflow_json) return null;
-    try {
-      return JSON.parse(agent.workflow_json) as Record<string, any>;
-    } catch {
-      return null;
-    }
-  }, [agent]);
-
-  const firstNode = useMemo(() => {
-    const nodesList = workflow?.nodes || config?.workflow_nodes;
-    if (!Array.isArray(nodesList) || nodesList.length === 0) return null;
-    return nodesList[0];
-  }, [workflow, config]);
-
-  const inputNodeType = useMemo(() => {
-    if (!firstNode) return "manual_input";
-    const name = firstNode.tool_name || firstNode.type;
-    if (["file_upload", "webhook_trigger", "schedule_trigger", "manual_input"].includes(name)) {
-      return name;
-    }
-    return "manual_input";
-  }, [firstNode]);
-
-  // Set realistic default if it's a Scribe Agent
-  useEffect(() => {
-    if (agent && (agent.name.toLowerCase().includes("scribe") || agent.name.toLowerCase().includes("clinic"))) {
-      setInputData("");
-    }
-  }, [agent]);
-
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    setUploadedFile({
-      name: file.name,
-      size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
-      type: file.type
-    });
-
-    if (file.type.startsWith("audio/") || file.name.endsWith(".mp3") || file.name.endsWith(".wav") || file.name.endsWith(".m4a")) {
-      setIsTranscribing(true);
-      setAudioTranscript(null);
-      
-      setTerminalLogs(prev => [
-        ...prev,
-        {
-          id: Date.now().toString() + "_upload_msg",
-          timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-          text: `> UPLOADED CLINICAL AUDIO: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`,
-          type: "system"
-        },
-        {
-          id: Date.now().toString() + "_transcribing_msg",
-          timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-          text: `> INITIATING WHISPER TRANSCRIBER SUBROUTINE...`,
-          type: "system"
-        }
-      ]);
-
-      setTimeout(() => {
-        setIsTranscribing(false);
-        const transcriptText = `Doctor: Good morning. How has that lower back pain been since we started the physical therapy?
-Patient: It's a bit better when I'm walking, but sitting for more than 20 minutes is still causing a sharp pain in my lumbar region.
-Doctor: I see. Let's adjust the therapy schedule to focus on core stabilization. I will also prescribe a mild muscle relaxant, cyclobenzaprine 5mg, to take before bed. Let's check your vitals... BP is 120/80, heart rate is 72.`;
-        
-        setAudioTranscript(transcriptText);
-        setInputData(transcriptText);
-        
-        setTerminalLogs(prev => [
-          ...prev,
-          {
-            id: Date.now().toString() + "_transcribe_done",
-            timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-            text: `> TRANSLATION COMPLETE: 78 WORDS PARSED SECURELY.`,
-            type: "system"
-          }
-        ]);
-      }, 2500);
-    } else {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = event.target?.result as string;
-        setInputData(text || `[File Content: ${file.name}]`);
-      };
-      if (file.type.startsWith("text/") || file.name.endsWith(".csv") || file.name.endsWith(".json") || file.name.endsWith(".txt")) {
-        reader.readAsText(file);
-      } else {
-        setInputData(`[Binary/Media File: ${file.name} - ${file.type}]`);
-      }
-    }
-  };
-
   async function handleRun() {
     if (!agentId) return;
     
@@ -216,25 +118,20 @@ Doctor: I see. Let's adjust the therapy schedule to focus on core stabilization.
       
       setResult(response.output);
       
+      const nextRuns = await getRuns(agentId);
+      const nextAgent = await getAgent(agentId);
+      setRuns(nextRuns);
+      setAgent(nextAgent);
+      
       setTerminalLogs(prev => [
         ...prev,
         {
           id: Date.now().toString() + "_complete",
           timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-          text: `> SUCCESS: TELEMETRY AND PRIVACY PROOFS RESOLVED.`,
+          text: `> OUTPUT GENERATED:\n${response.output}`,
           type: "thought"
-        },
-        {
-          id: Date.now().toString() + "_redirect_telemetry",
-          timestamp: new Date().toISOString().split("T")[1].substring(0, 8),
-          text: `> SYSTEM ACTION: INITIATING TACTICAL REDIRECT TO ACTIVE PIPELINE TELEMETRY...`,
-          type: "system"
         }
       ]);
-
-      setTimeout(() => {
-        router.push(`/agent/${agentId}/run/${response.run_id}`);
-      }, 1500);
       
     } catch (cause) {
       const errMsg = cause instanceof Error ? cause.message : "Failed to run the agent.";
@@ -326,209 +223,24 @@ Doctor: I see. Let's adjust the therapy schedule to focus on core stabilization.
           </div>
           
           <div className="stack">
-            {inputNodeType === "file_upload" && (
-              <div className="stack" style={{ gap: "16px" }}>
-                <div className="file-dropzone-container" style={{
-                  border: "2px dashed var(--line-strong)",
-                  background: "rgba(161, 239, 248, 0.02)",
-                  padding: "32px",
-                  textAlign: "center",
-                  cursor: "pointer",
-                  position: "relative",
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "12px",
-                  transition: "all 0.2s ease"
-                }}>
-                  <input 
-                    type="file" 
-                    onChange={handleFileUpload} 
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      opacity: 0,
-                      cursor: "pointer"
-                    }} 
-                    accept="audio/*,image/*,.txt,.csv,.json,.pdf"
-                    disabled={running || isTranscribing}
-                  />
-                  
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.8, filter: "drop-shadow(0 0 8px rgba(161, 239, 248, 0.3))" }}>
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="17 8 12 3 7 8" />
-                    <line x1="12" y1="3" x2="12" y2="15" />
-                  </svg>
-
-                  {uploadedFile ? (
-                    <div>
-                      <div style={{ color: "var(--accent-cyan)", fontWeight: "bold", fontFamily: "var(--mono-font)" }}>
-                        {uploadedFile.name}
-                      </div>
-                      <div style={{ fontSize: "11px", color: "var(--text-muted)", fontFamily: "var(--mono-font)", marginTop: "4px" }}>
-                        {uploadedFile.size} • {uploadedFile.type || "unknown format"}
-                      </div>
-                    </div>
-                  ) : (
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: "15px", marginBottom: "4px" }}>Drag and drop clinical audio visit or media payload</div>
-                      <div style={{ fontSize: "12px", color: "var(--text-muted)", fontFamily: "var(--mono-font)" }}>
-                        Supports Audio (.mp3, .wav), PDF, Images, or Text files
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {isTranscribing && (
-                  <div className="audio-transcribing-loader" style={{
-                    background: "rgba(0, 0, 0, 0.4)",
-                    border: "1px solid var(--line-strong)",
-                    padding: "20px",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: "12px"
-                  }}>
-                    <div style={{ color: "var(--accent-cyan)", fontFamily: "var(--mono-font)", fontSize: "13px" }}>
-                      &gt; TRANSCRIBING AUDIO VISIT IN REAL-TIME...
-                    </div>
-                    
-                    <div style={{ display: "flex", gap: "4px", height: "30px", alignItems: "center" }}>
-                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15].map((i) => (
-                        <div 
-                          key={i} 
-                          style={{
-                            width: "3px",
-                            height: "100%",
-                            background: "var(--accent-cyan)",
-                            animation: `soundWave 0.8s ease-in-out infinite alternate`,
-                            animationDelay: `${i * 0.05}s`
-                          }} 
-                        />
-                      ))}
-                    </div>
-                    <style>{`
-                      @keyframes soundWave {
-                        0% { height: 6px; opacity: 0.3; }
-                        100% { height: 30px; opacity: 1; }
-                      }
-                    `}</style>
-                  </div>
-                )}
-
-                {audioTranscript && (
-                  <div className="transcript-box" style={{
-                    background: "rgba(161, 239, 248, 0.03)",
-                    border: "1px solid var(--line-subtle)",
-                    padding: "16px",
-                    fontFamily: "var(--mono-font)"
-                  }}>
-                    <div style={{
-                      fontSize: "11px",
-                      color: "var(--accent-cyan)",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.15em",
-                      marginBottom: "8px",
-                      display: "flex",
-                      justifyContent: "space-between"
-                    }}>
-                      <span>Parsed Transcription Preview</span>
-                      <span style={{ color: "var(--text-muted)" }}>(Ready for Processing)</span>
-                    </div>
-                    <pre style={{
-                      margin: 0,
-                      whiteSpace: "pre-wrap",
-                      fontSize: "13px",
-                      color: "var(--text-primary)",
-                      lineHeight: "1.5",
-                      maxHeight: "150px",
-                      overflowY: "auto",
-                      background: "#000",
-                      padding: "12px",
-                      border: "1px solid rgba(255, 255, 255, 0.05)"
-                    }}>
-                      {audioTranscript}
-                    </pre>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {inputNodeType === "webhook_trigger" && (
-              <div className="webhook-trigger-info" style={{
-                background: "rgba(161, 239, 248, 0.03)",
-                border: "1px solid var(--line-strong)",
-                padding: "20px",
-                fontFamily: "var(--mono-font)"
-              }}>
-                <div style={{ color: "var(--accent-cyan)", fontWeight: "bold", fontSize: "14px", marginBottom: "8px" }}>
-                  &gt; WEBHOOK TRIGGER ACTIVE
-                </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: "0 0 12px", fontFamily: "var(--display-font)" }}>
-                  Send an HTTP POST request to trigger this workflow. The request payload will serve as input.
-                </p>
-                <div style={{ background: "#000", padding: "12px", border: "1px solid rgba(255, 255, 255, 0.05)" }}>
-                  <code style={{ fontSize: "12px", color: "var(--text-primary)" }}>
-                    POST http://localhost:8000/agents/{agentId}/run
-                  </code>
-                </div>
-              </div>
-            )}
-
-            {inputNodeType === "schedule_trigger" && (
-              <div className="schedule-trigger-info" style={{
-                background: "rgba(161, 239, 248, 0.03)",
-                border: "1px solid var(--line-strong)",
-                padding: "20px",
-                fontFamily: "var(--mono-font)"
-              }}>
-                <div style={{ color: "var(--accent-cyan)", fontWeight: "bold", fontSize: "14px", marginBottom: "8px" }}>
-                  &gt; SCHEDULE TRIGGER ENCRYPTED CRON
-                </div>
-                <p style={{ color: "var(--text-muted)", fontSize: "13px", margin: "0 0 12px", fontFamily: "var(--display-font)" }}>
-                  This workflow is configured to run automatically on a secure timer schedule.
-                </p>
-                <div style={{ display: "flex", gap: "24px" }}>
-                  <div>
-                    <span style={{ fontSize: "10px", color: "var(--text-muted)", display: "block" }}>CRON EXPRESSION</span>
-                    <span style={{ fontSize: "14px", color: "var(--accent-cyan)", fontWeight: "bold" }}>
-                      {String((firstNode?.params as any)?.cron || "0 0 * * *")}
-                    </span>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: "10px", color: "var(--text-muted)", display: "block" }}>NEXT EXECUTION</span>
-                    <span style={{ fontSize: "14px", color: "var(--text-primary)" }}>
-                      Tonight at 00:00 UTC
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {inputNodeType === "manual_input" && (
-              <label className="field">
-                <span className="field__label">Input Payload</span>
-                <textarea
-                  className="textarea"
-                  value={inputData}
-                  onChange={(event) => setInputData(event.target.value)}
-                  disabled={running}
-                  placeholder="Paste patient visit text, support tickets, or search keywords here..."
-                />
-              </label>
-            )}
+            <label className="field">
+              <span className="field__label">Input Payload</span>
+              <textarea
+                className="textarea"
+                value={inputData}
+                onChange={(event) => setInputData(event.target.value)}
+                disabled={running}
+              />
+            </label>
             
             <div className="button-row">
               <button 
                 className="button" 
                 type="button" 
-                disabled={running || !inputData.trim() || loading || isTranscribing} 
+                disabled={running || !inputData.trim() || loading} 
                 onClick={handleRun}
               >
-                {running ? "EXECUTING..." : 
-                 isTranscribing ? "TRANSCRIBING..." :
-                 inputNodeType === "file_upload" ? "PROCESS SECURE UPLOAD" : "DEPLOY AGENT"}
+                {running ? "EXECUTING..." : "DEPLOY AGENT"}
               </button>
             </div>
           </div>

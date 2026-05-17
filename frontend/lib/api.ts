@@ -87,10 +87,6 @@ export async function getRuns(agentId: string): Promise<AgentRun[]> {
   return request(`/agents/${agentId}/runs`);
 }
 
-export async function getRun(runId: string): Promise<AgentRun & { output?: string | null; node_outputs_json?: string | null }> {
-  return request(`/agents/runs/${runId}`);
-}
-
 export async function updateAgent(agentId: string, payload: { description?: string | null; workflow_json?: Record<string, unknown> | null; }): Promise<Agent> {
   return request(`/agents/${agentId}`, {
     method: "PUT",
