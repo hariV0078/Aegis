@@ -16,9 +16,7 @@ export default function AgentDetailPage() {
   
   const [agent, setAgent] = useState<Agent | null>(null);
   const [runs, setRuns] = useState<AgentRun[]>([]);
-  const [inputData, setInputData] = useState(
-    "Review the latest customer feedback and surface three repeated defect patterns.",
-  );
+  const [inputData, setInputData] = useState("");
   
   const [loading, setLoading] = useState(true);
   const [running, setRunning] = useState(false);
@@ -236,21 +234,7 @@ export default function AgentDetailPage() {
         setAgent(nextAgent);
         setRuns(nextRuns);
 
-        const nameLower = (nextAgent.name || "").toLowerCase();
-        const descLower = (nextAgent.description || "").toLowerCase();
-        if (
-          nameLower.includes("clinic") || 
-          nameLower.includes("medical") || 
-          nameLower.includes("scribe") ||
-          descLower.includes("clinic") || 
-          descLower.includes("medical") || 
-          descLower.includes("scribe")
-        ) {
-          setInputData(
-            `Doctor: [Enter Doctor Dialogue]\nPatient: [Enter Patient Dialogue]\n`
-          );
-        }
-        
+
         setTerminalLogs([
           {
             id: Date.now().toString(),
