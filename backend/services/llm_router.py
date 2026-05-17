@@ -103,6 +103,7 @@ def _mock_agent_config(messages: list[dict]) -> str:
             "retention_policy": "no_store",
         },
         "nodes": nodes,
+        "workflow_nodes": nodes,
         "edges": edges,
     }
     return json.dumps(config)

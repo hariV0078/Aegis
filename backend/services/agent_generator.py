@@ -118,9 +118,10 @@ def _normalize_config(config: dict) -> dict:
     normalized["privacy_rules"]["strip_before_llm"] = True
     normalized["privacy_rules"]["retention_policy"] = "no_store"
 
-    workflow_nodes = config.get("workflow_nodes", [])
+    workflow_nodes = config.get("workflow_nodes") or config.get("nodes", [])
     if not isinstance(workflow_nodes, list) or not workflow_nodes:
         normalized["workflow_nodes"] = DEFAULT_CONFIG["workflow_nodes"]
+        normalized["nodes"] = DEFAULT_CONFIG["workflow_nodes"]
     else:
         valid_nodes = []
         for i, node in enumerate(workflow_nodes[:15]):
@@ -132,6 +133,7 @@ def _normalize_config(config: dict) -> dict:
                     "params": node.get("params", {}),
                 })
         normalized["workflow_nodes"] = valid_nodes if valid_nodes else DEFAULT_CONFIG["workflow_nodes"]
+        normalized["nodes"] = normalized["workflow_nodes"]
 
     edges = config.get("edges", [])
     normalized["edges"] = edges if isinstance(edges, list) else []
