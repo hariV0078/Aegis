@@ -5,6 +5,7 @@ import httpx
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, File, UploadFile, Form
 from pydantic import BaseModel
 from sqlmodel import Session, select
+from groq import Groq
 
 from backend.database import get_session
 from backend.models.agent import Agent, AgentRun
@@ -223,21 +224,19 @@ async def transcribe_audio(
     key = api_key or os.getenv("GROQ_API_KEY", "")
     content = await file.read()
     
-    # If a real key is present, call Groq's official high-speed speech-to-text API!
+    # If a real key is present, call Groq's official high-speed speech-to-text API using official Groq client!
     if key and (provider == "groq" or not provider or provider == "byok_groq"):
         try:
-            url = "https://api.groq.com/openai/v1/audio/transcriptions"
-            headers = {"Authorization": f"Bearer {key}"}
-            files = {"file": (file.filename, content, file.content_type or "audio/wav")}
-            data = {"model": "whisper-large-v3", "temperature": "0.0"}
-            
-            async with httpx.AsyncClient() as client:
-                response = await client.post(url, headers=headers, files=files, data=data, timeout=60)
-                response.raise_for_status()
-                text = response.json().get("text", "")
-                return {"text": text}
-        except Exception:
-            # Fall back to high-fidelity mock if API call fails
+            client = Groq(api_key=key)
+            transcription = client.audio.transcriptions.create(
+                file=(file.filename or "audio.wav", content),
+                model="whisper-large-v3",
+                temperature=0,
+                response_format="verbose_json",
+            )
+            return {"text": transcription.text}
+        except Exception as exc:
+            print(f"[GROQ SDK TRANSCRIPTION ERROR] {exc}")
             pass
             
     # Mock fallback with realistic diagnostic/patient details if no key is configured
